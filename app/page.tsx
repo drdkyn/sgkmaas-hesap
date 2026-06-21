@@ -104,9 +104,25 @@ export default function Home() {
               )}
             </div>
             {Number(res.cakisanHizmet) < 0 && (
-              <div className="sub" style={{ marginTop: 8 }}>
-                Aynı aya denk gelen hizmetlerden {Math.abs(Number(res.cakisanHizmet))} gün çakışan hizmet olarak düşülmüştür; prim gün sayısı bu düşüm sonrası net değerdir.
-              </div>
+              <>
+                <div className="sub" style={{ marginTop: 8 }}>
+                  Aynı aya denk gelen hizmetlerden toplam {Math.abs(Number(res.cakisanHizmet))} gün çakışan hizmet olarak düşülmüştür; prim gün sayısı bu düşüm sonrası net değerdir.
+                </div>
+                {Array.isArray(res.cakisanDetay) && res.cakisanDetay.length > 0 && (
+                  <table style={{ marginTop: 10 }}>
+                    <thead><tr><th>Çakışan Dönem</th><th>Düşülen Gün</th></tr></thead>
+                    <tbody>
+                      {Object.entries(
+                        res.cakisanDetay.reduce((acc: Record<string, number>, d: any) => {
+                          const k = String(d.donem || '—'); acc[k] = (acc[k] || 0) + Math.abs(Number(d.gun) || 0); return acc;
+                        }, {})
+                      ).sort((a, b) => a[0].localeCompare(b[0])).map(([donem, gun], i) => (
+                        <tr key={i}><td>{donem}</td><td>{gun as number}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
             )}
           </div>
           <div className="card">
