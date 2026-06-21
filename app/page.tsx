@@ -99,7 +99,15 @@ export default function Home() {
             <div className="grid">
               <div className="kv"><div className="k">Prim Ödeme Gün Sayısı</div><div className="v">{res.primGunSayisi}</div></div>
               <div className="kv"><div className="k">Sigortalılık Süresi (yıl)</div><div className="v">{res.sigortalilikSuresi}</div></div>
+              {Number(res.cakisanHizmet) < 0 && (
+                <div className="kv"><div className="k">Çakışan Hizmet (düşülen gün)</div><div className="v">{Math.abs(Number(res.cakisanHizmet))}</div></div>
+              )}
             </div>
+            {Number(res.cakisanHizmet) < 0 && (
+              <div className="sub" style={{ marginTop: 8 }}>
+                Aynı aya denk gelen hizmetlerden {Math.abs(Number(res.cakisanHizmet))} gün çakışan hizmet olarak düşülmüştür; prim gün sayısı bu düşüm sonrası net değerdir.
+              </div>
+            )}
           </div>
           <div className="card">
             <h2>Emeklilik Şartları</h2>
