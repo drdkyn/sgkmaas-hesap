@@ -1,0 +1,73 @@
+---
+name: sgkmaas-hesap-project
+description: SGK emeklilik/maaş hesaplama web uygulaması — yeni proje, mimari ve Excel analiz bulguları
+metadata:
+  type: project
+---
+
+Kullanıcı (SGK personeli, Kahramanmaraş/Dulkadiroğlu SGM) yeni bir **SGK emeklilik + maaş hesaplama web uygulaması** istiyor. Konum: `C:\Users\Durdu\Documents\GitHub\sgkmaas-hesap` (sgk_main'den ayrı). Stack: Next.js + TypeScript. Faz 1 odak: **4a emeklilik — şartlar + bağlanacak maaş**. Doğrulama: Excel'i referans alıp birebir test (seed örnek kişi: ADEM ERTÜRK).
+
+**Kaynak dosya:** `MÜKTEZA_01.02.2023.xlsb` (Excel COM ile `MUKTEZA.xlsx`'e çevrildi). Profesyonel SGK "mükteza" aracı: **78 sayfa, 643k hücre, 560k formül.** Tüm hesap türlerini kapsıyor (4a/4b/4c, borçlanma, ölüm aylığı, maden, gazi, itibari hizmet, kıdem tazminatı, resmi ret/kabul yazıları).
+
+**Karar (kullanıcı netleştirdi): TÜM formüller eksiksiz TypeScript'e taşınacak ("her sayfa her kod"), hiçbir şey eksik kalmayacak.** Hibrit/Excel-motor reddedildi.
+
+**Mimari (kanıtlandı):**
+- Tüm kitap `workbook.json`'a çıkarıldı (openpyxl ile formül+cache değer, tarihler `{d:serial}` epoch 1899-12-30). Çıkarma scripti: `_extract_all.py`.
+- Motor: **fast-formula-parser** + ELLE yazılmış **hücre-hassas tembel (lazy) değerlendirici** (`_poc/poc2_eval.js`). HyperFormula DENENDİ ama **range-düğümü kabalığı yüzünden 45k yanlış CYCLE** üretti → uygun değil.
+- Sayfa adı düzeltme: noktalı adlar (`Giriş.`, `Em.San.`) tırnaksız referanslanmış → `_poc/requote.js` ile tüm sayfa adları tırnaklanıyor.
+- Özel fonksiyonlar (`_poc/customFns.js`): FFP'de eksik olan MAX, MIN, SMALL, LARGE, VALUE, SUBSTITUTE, SUMIFS, MATCH, LOOKUP, UPPER yazıldı. Hesapta **VBA/UDF YOK** (FHZ/KUR vb. hepsi metin etiketi).
+
+**SONUÇ — kanıtlandı:** AR50 (Emekli Maaşı) = **3252.71** (Excel ile birebir), Emeklilik Şartları K8=25, J14=5576 doğru üretildi.
+
+**Kalan ENGEL'ler (üretim motoru için, hâlâ ~78k hücre cache'e düşüyor):**
+1. **Gerçek range-döngüleri (~15-20k hücre):** VLOOKUP'un tüm aralığı talep etmesi yüzünden (örn. Emektar4a!B5 ↔ Hiz.Dökümü!DX27). Excel de muhtemelen iteratif/uyarı-yoksay ile çalışıyor (calcPr'da iterate yok ama cache değerleri yakınsamış). Çözüm: **sabit-nokta (fixed-point) iterasyonu**.
+2. **"Maximum call stack" (~8k):** derin özyineleme → trampoline/iteratif eval veya büyük stack gerek.
+3. **FFP parse/eval edge-case'leri:** "Cannot read 'call'" (~56k, hooks.js:307 iç hata — binary-op/sonuç sarmalama), "Expecting CloseParen" (~7k, derin iç içe IF) → FFP fork/patch veya kendi parser gerekebilir.
+4. **TEXT Türkçe format kodları:** `#.###,00 TL`, `gg.aa.yyyy` → özel TEXT implementasyonu (FFP'nin SSF'i `gg/aa` ve ` TL` literalini bilmiyor).
+
+**ÜRETİM MOTORU İLERLEMESİ (`_poc/engine.js` — `createEngine(book,opts)`):** Lazy hücre-hassas değerlendirici. Çözülen büyük sorunlar:
+1. **Yapay döngüler ÇÖZÜLDÜ:** VLOOKUP/HLOOKUP/MATCH/LOOKUP, FFP'nin `funsNeedContextAndNoDataRetrieve` listesine eklenip aralığı **referans olarak** alıyor, sadece arama+sonuç sütununu tembel çekiyor → backEdges=0, cyclic=0. (Diğer fonksiyonlar materyalize.)
+2. **Re-entrancy ÇÖZÜLDÜ:** chevrotain reentrant değil; onCell ile iç içe parse aynı örneği bozuyordu → **derinlik başına parser havuzu** (`getParser(depth)`, `makeParser()`). "call" hatası 56k→~321.
+3. **Tarih fonksiyonları ÇÖZÜLDÜ:** FFP tarih fn'leri seri-no kabul etmiyor ("text.match") → DATE/YEAR/MONTH/DAY/DAYS360(US NASD)/EDATE/EOMONTH/YEARFRAC/WEEKDAY/TODAY seri-no tabanlı elle yazıldı (epoch 1899-12-30). 8845 hata→0.
+4. Türkçe TEXT (gg.aa.yyyy, #.###,00 TL) elle yazıldı (`excelText`).
+
+**Durum:** 78k fallback → ~4.7k hata (çoğu birkaç yüz kökten propagasyon). KALAN kökler: `IFERROR(VLOOKUP(...))` deseni hâlâ "call" veriyor (~321-2506, izole tekrar etmiyor — derinlik/sıra etkileşimi), `LARGE` #NUM (108, muhtemelen IFERROR ile sarılı/normal), `SUMIF` kriteri obje (29, propagasyon). AR50 şu an 0 (kök hatalar propage oluyor) — bu kökler çözülünce 3252.71 dönmeli (fallbackCached:true ile zaten dönüyor).
+**Sonraki adım:** kalan kök hataları çöz (özellikle IFERROR+VLOOKUP) → cache'siz tam doğrulama harness'ı (tüm formül hücrelerini Excel cache ile karşılaştır, eşleşme %'si) → sonra Next.js.
+Test: `node --max-old-space-size=4096 _poc/test_engine.js` (cwd MUTLAKA _poc olmalı, yoksa require başarısız). POC dosyaları: `_poc/engine.js`, `requote.js`, `test_engine.js`, `customFns.js`.
+
+**✅ PDF/AYRIŞTIRICI KALİBRE EDİLDİ (6. tur):** Kullanıcı gerçek SGK PDF örneği verdi (İBRAHİM KOYUN, TC 35543016096, doğum 11.09.1985, PÖGS 5732). KRİTİK: SGK metni (özellikle PDF) temiz sütun DEĞİL — değişken boşluk, kayan isimler, eksik alanlar, çok satıra bölünmüş kayıtlar, ve PDF sütun sırası kopyala-yapıştırdan FARKLI. `lib/parse-hizmet.mjs` ANLAMSAL ayrıştırıcıya çevrildi: kayıtları kolu marker'ı (4a/4b/4c/GM20, (*) önekli) ile böler, TOPLAM satırlarını atlar, her kayıttan Dönem (yyyy/mm), Belge Türü (Asıl/İptal/Ek — DİKKAT: `\b` Türkçe "İ"de çalışmaz, token-eşitlik + toLocaleLowerCase('tr') kullanıldı), Gün (matrahtan önceki tamsayı), matrah (MONEY regex, ham string), Giriş/Çıkış tarihleri (matrah konumuna göre) çıkarır. A=kolu, B=statü(APHB), C=sicil(13hane), H=dönem, I=belgeKd(1), J=belgeTürü, K=gün, L=matrah(ham), M=giriş(seri), O=çıkış(seri). İBRAHİM örneğinde İptal/Ek/(*)/virgüllü matrah/tarihli-tarihsiz hepsi doğru ayrıştı. **AÇIK İŞ:** pdf-parse'ın gerçek metin çıktısı canlı test edilmeli (parser rendered-text'e göre tasarlandı); İBRAHİM'in TAM verisiyle primGun≈5732 doğrulanmalı (henüz yapılmadı). Test fixture: `_poc/_ibo_sample.txt`.
+
+**✅ GİRDİ ARAYÜZÜ ÇALIŞIYOR (5. tur):** Yapıştırma (Ctrl+A/C → textarea) ve PDF yükleme arayüzü kuruldu. `lib/parse-hizmet.mjs`: yapıştırılan SGK Hizmet Dökümü metnini A–P (16 sütun) satırlara ayrıştırır; filtre 4a/4b/4c/GM20/2925/2926/1479/506 ile başlayan satırları alır, **"Toplam" ara toplam satırlarını atlar** (seed: 234×4a+5×4b=239 gerçek, 25 Toplam atlandı). K=Gün sayı, M/O=tarih→seri (gg.aa.yyyy), **L=matrah HAM STRING bırakılır** (motor VALUE(SUBSTITUTE) ile kendi çevirir). `lib/sgk.mjs` hesapla(): hizmetRows → `Hiz. Dökümü`!A10:P810 (önce hepsini temizle, sonra doldur) + kişi alanları (doğum/tahsis dd.mm.yyyy→seri). **ROUND-TRIP DOĞRULANDI: yapıştırılan TSV → maaş 3252.71, gün 5576, süre 25 birebir.** `app/page.tsx` client form (textarea+PDF+kişi alanları+HESAPLA, ~22sn loading). `app/api/hesapla` POST parseHizmet, `app/api/pdf` POST (pdf-parse v2 `PDFParse` class → text → textarea'ya). PDF: GERÇEK SGK PDF ÖRNEĞİ İLE TEST EDİLMEDİ (metin çıkarımı kalibre edilmeli).
+
+**✅ NEXT.JS UYGULAMASI KURULDU & ÇALIŞIYOR (4. tur):** `sgkmaas-hesap/` artık bir Next.js 15.5.4 projesi. Yapı: `lib/engine.mjs` (ESM'e çevrildi — `import _ops from 'fast-formula-parser/formulas/operators.js'` TAM uzantı şart), `lib/requote.mjs`, `lib/sgk.mjs` (singleton + `hesapla(inputs)` → temiz JSON: maasAylik/Toplam, primGunSayisi, sigortalilikSuresi, senaryolar[]). `data/workbook.json` (71MB, fs ile runtime'da yüklenir). `app/page.tsx` (sade sonuç sayfası, server component), `app/api/hesapla/route.ts` (GET/POST). `next.config.mjs`: serverExternalPackages:['fast-formula-parser'], outputFileTracingIncludes workbook.json. `npm run dev` → localhost:3000, **doğru veri döndü** (maaş 3252.71, ADEM ERTÜRK, gün 5576). 
+**⚠️ PERF (DOĞRU TEŞHİS):** Bir hesap ~**22 saniye** — bu MOTORUN gerçek hızı (Next değil; prod=standalone=22s, dev 68s sadece enstrümantasyon). Sebep: AR50'nin bağımlılık ağı **~170k hücre** ve fast-formula-parser (chevrotain) her hücrede formülü yeniden lex+parse+eval ediyor → ~127μs/hücre. Excel ~1-2s (derlenmiş C++). HIZLANDIRMA SEÇENEKLERİ (gelecek, hepsi ek iş): (1) **Boş satır kırpma** — Hiz.Dökümü vb. 810 satıra kadar formül var ama ~30 satır dolu; boşlar 0, sayfaları ~60 satıra kırpmak SUM(X10:X810) sonucunu değiştirmez, ~5x kazanç olabilir (DİKKAT: re-validate). (2) Formülleri JS'e derle / AST cache (FFP couples parse+eval, kolay değil). (3) UX için worker süreci + "Hesaplanıyor..." + sonuç cache. 22s/hesap düşük trafikli iç araç için tolere edilebilir ama ideal değil.
+**KALAN İŞLER:** (a) PERF düzelt, (b) **girdi UI**: Hizmet Dökümü yapıştırma + PDF yükleme → `Giriş.` sayfasına override (INPUT_MAP lib/sgk.mjs'de başladı: adSoyad/tcKimlik/dogumTarihi/cinsiyet/iseGiris/tahsisTarihi; AMA asıl hizmet dökümü satırlarının `Giriş.` hücre haritası HENÜZ çıkarılmadı — bu kritik), (c) senaryo "ad" temizliği (PROPER Türkçe İ + ",,,," ekleri), (d) admin panel (parametre hücreleri), (e) 2 kozmetik Mükteza hücresi.
+
+**✅✅ MOTOR FİİLEN TAMAM (3. tur sonu):** Hesap sayfaları doğrulaması: Emeklilik Şartları 944/944, Emek. Hes. 455/455, İtibari+FH 419/419, Maden 277/277 = **%100**; Emekli Maaşı 2077/2077 (boş `=` hücreleri "=" döndürülerek düzeltildi). Kalan: Mükteza (Y) 2 kozmetik hücre (0'ın "#.###,00" metin formatı; bir sicil no gösterimi — ihmal edilebilir). **4a motoru bitti; sıradaki: TS modülüne taşı + Next.js + UI.** `eng.solve(ref)` kullan. Boş `=` formülü → "=" döndürülür.
+
+**🎉 MİLESTONE (3. tur) — 4a MAAŞ + ŞARTLAR SEED'DE TAM DOĞRU:** AR50 (maaş)=**3252.71** ✓, J14 (prim gün)=**5576** ✓, K8 (sigortalılık)=**25** ✓ — hepsi Excel ile birebir. `eng.solve(ref)` ile (lazy eval + sabit-nokta iterasyon). Bu turda eklenen KRİTİK düzeltmeler (`engine.js`):
+- **AND/OR hata yaymıyordu** → `AND(true,#VALUE!)` Excel'de #VALUE!, FFP'de true idi → özel AND/OR/NOT yazıldı (`boolVals`, hata propagasyonu). Yanlış "İBS" sınıflamasını düzeltti.
+- **Dizi (array) formülleri**: Infix mathOp/compareOp/concatOp element-wise diziye genişletildi (`arrayWrap`); COUNTIF/SUMIF dizi-kriter; MATCH hesaplanmış diziyi kabul ediyor (`listFromArg`); SUMIF FFP'nin no-retrieve listesinden çıkarıldı.
+- **TR-decimal math coercion**: `"1234,56"+S10` İngilizce parse #VALUE veriyordu → mathOp skaler yolu `trNum` ile TR-duyarlı.
+- **Boş hücreye referans = 0** (Excel): formül sonucu null ise → 0 (empty-ref-to-0). `null=""` blank yaması ile birlikte zinciri düzeltti.
+- **Seri-0 tarih**: `serialToYMD(0)` → {1900,1,0} (Excel YEAR(0)=1900). 
+- **SUMIFS/SUMIF tarih kriteri**: `">=01/01/2008"` string'i `critValue` ile dd/mm/yyyy → seri çevrimi.
+- **Sabit-nokta iterasyonu** (`sweepCycles`/`solve`): 537 döngü hücresi için (genelde 1 turda kararlı). `lastVal` map'i back-edge'de iterate değeri döndürür.
+Test: `node _poc/test_engine.js` veya `eng.solve('Emekli Maaşı!AR50')`. Kök bulucu: `_poc/difftrace.js <cell>`. Sayfa doğrulama: `_poc/validate_sheets.js`.
+
+**GÜNCEL DURUM (2. tur sonu) — kalan hata sayısı 78k→~862:**
+- ÇÖZÜLEN ek buglar: (a) lazy VLOOKUP'ta key tek-hücre referansı `{ref:{row,col}}` geliyordu, `key.ref.from.row` yerine `keyVal()` helper'ı ile cell/range/scalar üçünü de çözdüm + anahtarın KENDİ sayfasını kullan. (b) Sayısal fonksiyonlar (ABS/INT/ROUND/ROUNDUP/ROUNDDOWN/TRUNC) Türkçe-ondalık string ("0,01") kabul etsin diye `num()` ile ezildi (Excel-TR coercion). (c) **Boş hücre semantiği:** `Infix.compareOp` global yamalandı → null operand karşı taraf sayıysa 0, string ise "" (Excel'de blank hem ""'e hem 0'a eşit). FFP'de `null=""` false idi.
+- **K8 (sigortalılık süresi) = 25 TAM DOĞRU, 0 hata.** AR50 (maaş) 0→639 (hedef 3252.71, hâlâ eksik). 
+- **DİKKAT/REGRESYON:** blank yaması J14'ü 5576(doğru)→6749 yaptı ve 537 gerçek döngü açtı. Sebep: kontrol akışı değişip **dizi (array) formüllerine** dokunan yollar açıldı.
+- KALAN HATA SINIFLARI: (1) **Array/CSE formülleri** — `INDEX(..,SUMPRODUCT((MATCH(a&"@"&b, R1&"@"&R2,0))..))` gibi dizi-bağlamlı MATCH/COUNTIF/SUMPRODUCT; FFP implicit array yapmıyor (HC/GB sütunları, ~800+801 hata). (2) `LARGE` #NUM (109, çoğu IFERROR ile sarılı, normal olabilir). (3) `SUMIF` kriteri FormulaError objesi (29, propagasyon). (4) 537 gerçek döngü → sabit-nokta iterasyonu gerek.
+- **KRİTİK SONRAKİ İŞ:** Önce **tüm 560k hücreyi Excel cache ile karşılaştıran doğrulama harness'ı** yaz (net eşleşme %'si + sapan hücreler), SONRA whack-a-mole yapmadan sınıf sınıf düzelt (array formülleri en büyük kalan iş). Blank yamasının NET etkisini harness ile doğrula (J14 regresyonu nedeniyle).
+
+**Girdi mekanizması:** Kullanıcı SGK'dan Hizmet Dökümü tablosunu kopyalayıp yapıştırıyor → `Giriş.` sayfasına A2'den (VBA CommandButton1 HTML paste). Diğer girdiler: doğum tarihi, cinsiyet, işe giriş, tahsis tarihi.
+
+**UI/ÜRÜN GEREKSİNİMLERİ (EN SONDA, motor tam bittikten sonra yapılacak — kullanıcı 2026-06-21'de belirtti):**
+1. **Sonuç sayfası SADE ve anlaşılır** olacak (teknik hücre dökümü değil; vatandaşın anlayacağı özet: emekli olur/olamaz, ne zaman, maaş tutarı).
+2. **PDF belge yükleme ile de hesap**: kullanıcı Hizmet Dökümü'nü PDF olarak yükleyince de hesap yapılabilmeli (kopyala-yapıştırın yanında PDF parse).
+3. **Admin panel** ile periyodik veriler güncellenecek (aşağıdaki parametre hücreleri).
+4. Güncel ekonomik değerleri kullanıcı SONRADAN girecek (dosya birkaç yıldır güncellenmemiş).
+
+**Admin panel:** Periyodik güncellenen ekonomik parametreler (gösterge tablosu `Göst. Tabl.` 20k satır, memur maaş katsayıları, asgari ücret, güncelleme katsayısı, ABO) hücrelerde gömülü — `Ayar` sayfası DEĞİL (o personel/imza ayarı). Admin panel bu parametre hücrelerini düzenleyecek. Kullanıcı güncel değerleri sonra verecek (dosya birkaç yıldır güncellenmemiş).

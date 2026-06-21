@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# analiz / geliştirme artıkları (kalıcı değil)
+_poc/
+_dump/
+*.py
+vba_all.txt
+MUKTEZA.xlsx
+
+# OS
+.DS_Store
+Thumbs.db
