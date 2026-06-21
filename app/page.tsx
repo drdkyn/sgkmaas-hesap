@@ -8,6 +8,16 @@ function tl(n: any) {
 }
 const temizAd = (s: string) => String(s || '').replace(/[,]+/g, ' ').replace(/\s+/g, ' ').trim();
 const olur = (s: string) => /emekli olur/i.test(s || '');
+// gg.aa.yyyy maskesi: rakamları al, gruplar arasına nokta koy. Nokta yalnız ardında rakam
+// varken durur → backspace ile doğal/kolayca silinir (yapışkan nokta yok).
+function maskDate(s: string) {
+  const d = String(s || '').replace(/\D/g, '').slice(0, 8);
+  const parts: string[] = [];
+  if (d.length > 0) parts.push(d.slice(0, 2));
+  if (d.length > 2) parts.push(d.slice(2, 4));
+  if (d.length > 4) parts.push(d.slice(4, 8));
+  return parts.join('.');
+}
 
 export default function Home() {
   const [hizmetText, setHizmetText] = useState('');
@@ -71,13 +81,13 @@ export default function Home() {
       <div className="card">
         <h2>2) Kişi Bilgileri (opsiyonel)</h2>
         <div className="grid">
-          <div><label className="lbl">Doğum Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" value={dogumTarihi} onChange={e => setDogum(e.target.value)} /></div>
+          <div><label className="lbl">Doğum Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={dogumTarihi} onChange={e => setDogum(maskDate(e.target.value))} /></div>
           <div><label className="lbl">Cinsiyet</label>
             <select className="inp" value={cinsiyet} onChange={e => setCinsiyet(e.target.value)}>
               <option value="">—</option><option value="E">Erkek</option><option value="K">Kadın</option>
             </select>
           </div>
-          <div><label className="lbl">Tahsis / Hesap Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" value={tahsisTarihi} onChange={e => setTahsis(e.target.value)} /></div>
+          <div><label className="lbl">Tahsis / Hesap Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={tahsisTarihi} onChange={e => setTahsis(maskDate(e.target.value))} /></div>
         </div>
       </div>
 

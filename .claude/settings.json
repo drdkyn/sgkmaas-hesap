@@ -38,7 +38,14 @@
       "Bash(powershell.exe -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Select-Object Id,@{N='\\\\''CPU'\\\\'';E={[int]$_.CPU}}')",
       "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
       "PowerShell(Stop-Process -Force)",
-      "PowerShell(\"durduruldu\")"
+      "PowerShell(\"durduruldu\")",
+      "Bash(npx next *)",
+      "Bash(grep -qiE \"Ready|3100\" \"C:\\\\Users\\\\Durdu\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Durdu-Documents-GitHub-sgkmaas-hesap\\\\414da5ac-06e0-4d93-8bbc-0e944f54eb3b\\\\tasks\\\\bdkb53wxm.output\")",
+      "Bash(cat \"C:\\\\Users\\\\Durdu\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Durdu-Documents-GitHub-sgkmaas-hesap\\\\414da5ac-06e0-4d93-8bbc-0e944f54eb3b\\\\tasks\\\\bdkb53wxm.output\")",
+      "Bash(node -e \"const c=require\\('./data/params-catalog.json'\\); const arr=Array.isArray\\(c\\)?c:\\(c.items||c.params||Object.values\\(c\\)\\); console.log\\('tip:',Array.isArray\\(c\\)?'array':'obj','adet:',Array.isArray\\(c\\)?c.length:JSON.stringify\\(Object.keys\\(c\\)\\)\\); console.log\\(JSON.stringify\\(c\\).slice\\(0,600\\)\\);\")",
+      "Bash(node -e ' *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
