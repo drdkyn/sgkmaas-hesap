@@ -155,7 +155,7 @@ export default function Home() {
             </div>
           )}
           <div className="card">
-            <h2>Emeklilik Şartları</h2>
+            <h2>4a Emeklilik Şartları</h2>
             <table>
               <thead><tr><th>Tür</th><th>Süre</th><th>Yaş</th><th>Gün</th><th>Sonuç</th></tr></thead>
               <tbody>
