@@ -32,6 +32,7 @@ export default function Admin() {
       {cat.gruplar.map((g: any, gi: number) => (
         <div className="card" key={gi}>
           <h2>{g.baslik}</h2>
+          {g.aciklama && <div className="sub" style={{ marginTop: -4, marginBottom: 10 }}>{g.aciklama}</div>}
           <table>
             <thead><tr><th>Parametre</th><th>Varsayılan</th><th>Yeni Değer (özel)</th></tr></thead>
             <tbody>

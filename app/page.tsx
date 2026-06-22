@@ -18,23 +18,74 @@ function maskDate(s: string) {
   if (d.length > 4) parts.push(d.slice(4, 8));
   return parts.join('.');
 }
+// Excel seri no <-> gg.aa.yyyy (epoch 1899-12-30, parse-hizmet.mjs ile aynı)
+const EPOCH = Date.UTC(1899, 11, 30), DAY = 86400000;
+function serialToDate(v: any): string {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!isFinite(n) || n <= 0) return '';
+  const d = new Date(EPOCH + n * DAY);
+  const gg = String(d.getUTCDate()).padStart(2, '0');
+  const aa = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${gg}.${aa}.${d.getUTCFullYear()}`;
+}
+function dateToSerial(s: string): number | '' {
+  const m = /^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/.exec(String(s || '').trim());
+  if (!m) return '';
+  return Math.round((Date.UTC(+m[3], +m[2] - 1, +m[1]) - EPOCH) / DAY);
+}
+
+type Row = Record<string, any>;
 
 export default function Home() {
   const [hizmetText, setHizmetText] = useState('');
+  const [rows, setRows] = useState<Row[] | null>(null); // çözümlenmiş & düzenlenebilir dönemler
   const [dogumTarihi, setDogum] = useState('');
   const [cinsiyet, setCinsiyet] = useState('');
   const [tahsisTarihi, setTahsis] = useState('');
   const [loading, setLoading] = useState(false);
+  const [parseBusy, setParseBusy] = useState(false);
   const [err, setErr] = useState('');
   const [res, setRes] = useState<any>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
 
+  // Dökümü çözümle → düzenlenebilir tabloya yükle (Giriş/Çıkış Tarihi gg.aa.yyyy olarak)
+  async function cozumle() {
+    setParseBusy(true); setErr(''); setRes(null);
+    try {
+      const r = await fetch('/api/parse', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hizmetText }),
+      });
+      const data = await r.json();
+      if (!r.ok) { setErr(data.error || 'Çözümlenemedi'); return; }
+      const ed = (data.rows as Row[]).map(rw => ({ ...rw, _giris: serialToDate(rw.M), _cikis: serialToDate(rw.O) }));
+      setRows(ed);
+    } catch (e: any) { setErr(String(e?.message || e)); }
+    finally { setParseBusy(false); }
+  }
+
+  function setRowDate(i: number, key: '_giris' | '_cikis', val: string) {
+    setRows(rs => rs ? rs.map((r, j) => j === i ? { ...r, [key]: maskDate(val) } : r) : rs);
+  }
+
   async function hesapla() {
     setLoading(true); setErr(''); setRes(null);
     try {
+      // Düzenlenmiş satırlar varsa onları gönder (Giriş/Çıkış tarihleri serie çevrilir);
+      // yoksa ham metni gönder (sunucu parse eder).
+      let body: any = { dogumTarihi, cinsiyet, tahsisTarihi };
+      if (rows && rows.length) {
+        body.hizmetRows = rows.map(({ _giris, _cikis, ...rw }) => ({
+          ...rw,
+          M: dateToSerial(_giris) === '' ? '' : dateToSerial(_giris),
+          O: dateToSerial(_cikis) === '' ? '' : dateToSerial(_cikis),
+        }));
+      } else {
+        body.hizmetText = hizmetText;
+      }
       const r = await fetch('/api/hesapla', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hizmetText, dogumTarihi, cinsiyet, tahsisTarihi }),
+        body: JSON.stringify(body),
       });
       const data = await r.json();
       if (!r.ok) setErr(data.error || 'Hesaplama hatası'); else setRes(data);
@@ -49,7 +100,7 @@ export default function Home() {
       const r = await fetch('/api/pdf', { method: 'POST', body: fd });
       const data = await r.json();
       if (!r.ok) setErr(data.error || 'PDF okunamadı');
-      else { setHizmetText(data.text || ''); }
+      else { setHizmetText(data.text || ''); setRows(null); }
     } catch (e: any) { setErr(String(e?.message || e)); }
     finally { setPdfBusy(false); }
   }
@@ -65,18 +116,58 @@ export default function Home() {
           SGK/e-Devlet hizmet dökümü tablosunu seçin (<b>Ctrl+A</b>), kopyalayın (<b>Ctrl+C</b>) ve aşağıya yapıştırın (<b>Ctrl+V</b>). Veya PDF yükleyin.
         </p>
         <textarea
-          value={hizmetText} onChange={e => setHizmetText(e.target.value)}
+          value={hizmetText} onChange={e => { setHizmetText(e.target.value); setRows(null); }}
           placeholder="Hizmet dökümü tablosunu buraya yapıştırın…"
           rows={8} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12, padding: 10, border: '1px solid #cbd5e1', borderRadius: 8 }}
         />
-        <div style={{ marginTop: 10 }}>
+        <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <label className="btn-file">
             {pdfBusy ? 'PDF okunuyor…' : '📄 PDF yükle'}
             <input type="file" accept="application/pdf" style={{ display: 'none' }}
               onChange={e => e.target.files?.[0] && pdfYukle(e.target.files[0])} />
           </label>
+          <button className="btn-file" onClick={cozumle} disabled={parseBusy || !hizmetText.trim()}>
+            {parseBusy ? 'Çözümleniyor…' : '🔍 Çözümle ve Çıkış Tarihlerini Düzenle'}
+          </button>
         </div>
       </div>
+
+      {rows && rows.length > 0 && (
+        <div className="card">
+          <h2>1b) Dönemler — Giriş / Çıkış Tarihleri</h2>
+          <p className="sub" style={{ marginBottom: 10 }}>
+            Aşağıdaki <b>{rows.length}</b> dönem çözümlendi. <b>Çıkış Tarihi</b> aynı aya denk gelen hizmetlerde
+            çakışma hesabını (ve dolayısıyla prim gününü/maaşı) etkiler. Dökümde çıkış tarihi yoksa burada girin/düzeltin
+            (boş bırakılırsa ilgili ayın sonu varsayılır).
+          </p>
+          <div style={{ overflowX: 'auto', maxHeight: 420, overflowY: 'auto' }}>
+            <table style={{ fontSize: 12 }}>
+              <thead><tr>
+                <th>#</th><th>Dönem</th><th>Statü</th><th>Belge</th><th>Gün</th><th>Kazanç</th>
+                <th>Giriş Tarihi</th><th>Çıkış Tarihi</th>
+              </tr></thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td style={{ color: '#94a3b8' }}>{i + 1}</td>
+                    <td>{String(r.H ?? '')}</td>
+                    <td>{String(r.A ?? '')}</td>
+                    <td>{String(r.J ?? '')}</td>
+                    <td>{String(r.K ?? '')}</td>
+                    <td>{String(r.L ?? '')}</td>
+                    <td><input className="inp" style={{ width: 110, fontSize: 12, padding: '4px 6px' }}
+                      placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10}
+                      value={r._giris} onChange={e => setRowDate(i, '_giris', e.target.value)} /></td>
+                    <td><input className="inp" style={{ width: 110, fontSize: 12, padding: '4px 6px' }}
+                      placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10}
+                      value={r._cikis} onChange={e => setRowDate(i, '_cikis', e.target.value)} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <h2>2) Kişi Bilgileri (opsiyonel)</h2>

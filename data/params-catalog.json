@@ -1,7 +1,138 @@
 {
   "gruplar": [
     {
-      "baslik": "Yıllara Göre Katsayılar (eski sistem)",
+      "baslik": "TÜFE Oranları (Yıllık, %) — Güncelleme Katsayısı",
+      "aciklama": "Her yıl açıklanan yıllık TÜFE (bir önceki yıl). Aylık bağlama güncellemesinde kullanılır. Yüzde olarak girin (ör. 64,77).",
+      "params": [
+        {
+          "ref": "Veri Girişi!F3",
+          "label": "2018 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F4",
+          "label": "2019 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F5",
+          "label": "2020 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F6",
+          "label": "2021 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F7",
+          "label": "2022 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F8",
+          "label": "2023 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F9",
+          "label": "2024 TÜFE (%)"
+        },
+        {
+          "ref": "Veri Girişi!F10",
+          "label": "2025 TÜFE (%)"
+        }
+      ]
+    },
+    {
+      "baslik": "Gelişme Hızı (GH) (Yıllık, %)",
+      "aciklama": "Her yıl açıklanan gelişme hızı (büyüme). Aylık güncellemesinde TÜFE ile birlikte kullanılır. Yüzde olarak girin.",
+      "params": [
+        {
+          "ref": "Veri Girişi!G3",
+          "label": "2018 GH (%)"
+        },
+        {
+          "ref": "Veri Girişi!G4",
+          "label": "2019 GH (%)"
+        },
+        {
+          "ref": "Veri Girişi!G5",
+          "label": "2020 GH (%)"
+        },
+        {
+          "ref": "Veri Girişi!G6",
+          "label": "2021 GH (%)"
+        },
+        {
+          "ref": "Veri Girişi!G7",
+          "label": "2022 GH (%)"
+        },
+        {
+          "ref": "Veri Girişi!G8",
+          "label": "2023 GH (%)"
+        },
+        {
+          "ref": "Veri Girişi!G9",
+          "label": "2024 GH (%)"
+        }
+      ]
+    },
+    {
+      "baslik": "Günlük Kazanç Alt Sınırı (₺/gün) — Borçlanma",
+      "aciklama": "Asgari ücrete bağlı günlük kazanç alt sınırı (asgari aylık ÷ 30). Borçlanma tutarı hesabında kullanılır.",
+      "params": [
+        {
+          "ref": "Veri Girişi!C3",
+          "label": "2019 (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C4",
+          "label": "2020 (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C5",
+          "label": "2021 (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C6",
+          "label": "2022 (1.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C7",
+          "label": "2022 (2.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C8",
+          "label": "2023 (1.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C9",
+          "label": "2023 (2.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C10",
+          "label": "2024 (1.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C11",
+          "label": "2024 (2.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C12",
+          "label": "2025 (1.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C13",
+          "label": "2025 (2.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C14",
+          "label": "2026 (1.yarı) (₺/gün)"
+        },
+        {
+          "ref": "Veri Girişi!C15",
+          "label": "2026 (2.yarı) (₺/gün)"
+        }
+      ]
+    },
+    {
+      "baslik": "Tarihsel Katsayılar (1949–1968, sabit)",
+      "aciklama": "Geçmiş yıllara ait sabit değerler — normalde değişmez.",
       "params": [
         {
           "ref": "Hiz. Dökümü!EF10",
@@ -106,7 +237,8 @@
       ]
     },
     {
-      "baslik": "Güncelleme / TÜFE Katsayıları",
+      "baslik": "Tarihsel TÜFE Katsayıları (1999–2017, sabit)",
+      "aciklama": "Geçmiş yıllara ait sabit değerler — normalde değişmez.",
       "params": [
         {
           "ref": "Emekli Maaşı!G5",
