@@ -61,6 +61,11 @@ export default function Home() {
       if (!r.ok) { setErr(data.error || 'Çözümlenemedi'); return; }
       const ed = (data.rows as Row[]).map(rw => ({ ...rw, _giris: serialToDate(rw.M), _cikis: serialToDate(rw.O) }));
       setRows(ed);
+      // Cinsiyet + doğum tarihini dökümden OTOMATİK doldur (düzenlenebilir).
+      if (data.kisi?.cinsiyet) setCinsiyet(data.kisi.cinsiyet);
+      if (data.kisi?.dogumTarihi) setDogum(data.kisi.dogumTarihi);
+      // İşe giriş'i ilk kaydın giriş tarihinden öner (zorunlu; kullanıcı düzeltebilir).
+      if (!iseGirisTarihi) { const ilk = ed.find(r => r._giris); if (ilk?._giris) setIseGiris(ilk._giris); }
     } catch (e: any) { setErr(String(e?.message || e)); }
     finally { setParseBusy(false); }
   }
@@ -70,22 +75,19 @@ export default function Home() {
   }
 
   async function hesapla() {
-    // İşe giriş ve cinsiyet ZORUNLU: statü tespiti (4a/4b/4c) ve emeklilik şartları bunlara bağlı.
-    if (!cinsiyet) { setErr('Cinsiyet zorunludur (emeklilik şartları cinsiyete göre değişir).'); return; }
-    if (!/^\d{2}\.\d{2}\.\d{4}$/.test(iseGirisTarihi)) { setErr('İşe Giriş Tarihi zorunludur (gg.aa.yyyy) — statü tespiti (SSK/Emekli Sandığı) ilk giriş tarihine göre yapılır.'); return; }
+    // İŞE GİRİŞ zorunlu (statü/şart rejimi 01.10.2008 öncesi/sonrası buna bağlı).
+    // Cinsiyet + doğum dökümden OTOMATİK alınır (boşsa sunucu dökümden çıkarır).
+    if (!/^\d{2}\.\d{2}\.\d{4}$/.test(iseGirisTarihi)) { setErr('İşe Giriş Tarihi zorunludur (gg.aa.yyyy) — statü tespiti (SSK/Emekli Sandığı) ilk giriş tarihine göre yapılır. "Çözümle" ile dökümden önerilir.'); return; }
     setLoading(true); setErr(''); setRes(null);
     try {
-      // Düzenlenmiş satırlar varsa onları gönder (Giriş/Çıkış tarihleri serie çevrilir);
-      // yoksa ham metni gönder (sunucu parse eder).
-      let body: any = { dogumTarihi, cinsiyet, iseGirisTarihi, tahsisTarihi };
+      // Tahsis boşsa BUGÜN (sunucu da garanti eder). Cinsiyet/doğum boşsa sunucu dökümden alır.
+      let body: any = { dogumTarihi, cinsiyet, iseGirisTarihi, tahsisTarihi, hizmetText };
       if (rows && rows.length) {
         body.hizmetRows = rows.map(({ _giris, _cikis, ...rw }) => ({
           ...rw,
           M: dateToSerial(_giris) === '' ? '' : dateToSerial(_giris),
           O: dateToSerial(_cikis) === '' ? '' : dateToSerial(_cikis),
         }));
-      } else {
-        body.hizmetText = hizmetText;
       }
       const r = await fetch('/api/hesapla', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -177,15 +179,15 @@ export default function Home() {
         <h2>2) Kişi Bilgileri</h2>
         <div className="grid">
           <div><label className="lbl">İşe Giriş Tarihi <span style={{ color: '#dc2626' }}>*</span></label><input className="inp" style={!/^\d{2}\.\d{2}\.\d{4}$/.test(iseGirisTarihi) ? { borderColor: '#fca5a5' } : undefined} placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={iseGirisTarihi} onChange={e => setIseGiris(maskDate(e.target.value))} /></div>
-          <div><label className="lbl">Cinsiyet <span style={{ color: '#dc2626' }}>*</span></label>
-            <select className="inp" style={!cinsiyet ? { borderColor: '#fca5a5' } : undefined} value={cinsiyet} onChange={e => setCinsiyet(e.target.value)}>
-              <option value="">— seçin —</option><option value="E">Erkek</option><option value="K">Kadın</option>
+          <div><label className="lbl">Cinsiyet <span style={{ fontSize: 11, color: '#94a3b8' }}>(dökümden)</span></label>
+            <select className="inp" value={cinsiyet} onChange={e => setCinsiyet(e.target.value)}>
+              <option value="">— otomatik —</option><option value="E">Erkek</option><option value="K">Kadın</option>
             </select>
           </div>
-          <div><label className="lbl">Doğum Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={dogumTarihi} onChange={e => setDogum(maskDate(e.target.value))} /></div>
-          <div><label className="lbl">Tahsis / Hesap Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={tahsisTarihi} onChange={e => setTahsis(maskDate(e.target.value))} /></div>
+          <div><label className="lbl">Doğum Tarihi <span style={{ fontSize: 11, color: '#94a3b8' }}>(dökümden)</span></label><input className="inp" placeholder="otomatik" inputMode="numeric" maxLength={10} value={dogumTarihi} onChange={e => setDogum(maskDate(e.target.value))} /></div>
+          <div><label className="lbl">Tahsis / Müracaat Tarihi <span style={{ fontSize: 11, color: '#94a3b8' }}>(boşsa bugün)</span></label><input className="inp" placeholder="bugün" inputMode="numeric" maxLength={10} value={tahsisTarihi} onChange={e => setTahsis(maskDate(e.target.value))} /></div>
         </div>
-        <div className="sub" style={{ marginTop: 8 }}><span style={{ color: '#dc2626' }}>*</span> zorunlu — statü tespiti (SSK / Bağ-Kur / Emekli Sandığı) ve emeklilik şartları bu alanlara göre belirlenir.</div>
+        <div className="sub" style={{ marginTop: 8 }}><span style={{ color: '#dc2626' }}>*</span> İşe Giriş Tarihi zorunlu (statü/şart rejimini belirler). Cinsiyet ve doğum tarihi dökümden otomatik alınır; tahsis tarihi boşsa bugün kullanılır. "Çözümle"ye basınca otomatik dolar.</div>
       </div>
 
       <button className="hesapla-btn" onClick={hesapla} disabled={loading}>
