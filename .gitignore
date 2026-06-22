@@ -23,3 +23,6 @@ Thumbs.db
 # dev/geçici
 dev.log
 *.pdf
+/workbook.json
+_*.json
+_*.mjs
