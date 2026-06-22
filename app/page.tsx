@@ -156,9 +156,9 @@ export default function Home() {
                   </tbody>
                 </table>
               )}
-              {res.statu.ikinciAd && Number(res.statu.gerekenDaha) > 0 && (
+              {Number(res.statu.gerekenDaha) > 0 && (
                 <div className="sub" style={{ marginTop: 8 }}>
-                  Statünün <b>{res.statu.ikinciAd}</b> olması için {res.statu.ikinciAd}'nın {res.statu.basisAd.toLowerCase()} içinde en az <b>{res.statu.esik} gün</b> olması gerekirdi (şu an {res.statu.statuler.find((s: any) => s.ad === res.statu.ikinciAd)?.belirleyici ?? 0}); yani <b>{res.statu.gerekenDaha} gün</b> daha.
+                  Statünün <b>{res.statu.hedefAd}</b> olması için {res.statu.hedefAd}'nın {res.statu.basisAd.toLowerCase()} içinde en az <b>{res.statu.esik} gün</b> olması gerekir (şu an {res.statu.hedefMevcut}); yani <b>{res.statu.gerekenDaha} gün</b> daha.
                 </div>
               )}
             </div>
