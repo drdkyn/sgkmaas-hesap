@@ -142,15 +142,24 @@ export default function Home() {
                 <div className="kv"><div className="k">Emekli olunacak statü</div><div className="v">{res.statu.belirlenen}</div></div>
               </div>
               <div className="sub" style={{ marginTop: 8 }}>{res.statu.kural}</div>
-              {res.statu.toplamDagilim && Object.keys(res.statu.toplamDagilim).length > 1 && (
+              {Array.isArray(res.statu.statuler) && (
                 <table style={{ marginTop: 10 }}>
-                  <thead><tr><th>Statü</th><th>Toplam Gün</th></tr></thead>
+                  <thead><tr><th>Statü</th><th>{res.statu.basisAd} Gün (belirleyici)</th><th>Toplam Gün</th></tr></thead>
                   <tbody>
-                    {Object.entries(res.statu.toplamDagilim).sort((a, b) => (b[1] as number) - (a[1] as number)).map(([st, gun], i) => (
-                      <tr key={i}><td>{st}</td><td>{gun as number}</td></tr>
+                    {res.statu.statuler.map((s: any, i: number) => (
+                      <tr key={i} style={s.ad === res.statu.belirlenen ? { fontWeight: 700 } : undefined}>
+                        <td>{s.ad}{s.ad === res.statu.belirlenen ? ' ✓' : ''}</td>
+                        <td>{s.belirleyici}</td>
+                        <td>{s.toplam}</td>
+                      </tr>
                     ))}
                   </tbody>
                 </table>
+              )}
+              {res.statu.ikinciAd && Number(res.statu.fark) > 0 && (
+                <div className="sub" style={{ marginTop: 8 }}>
+                  {res.statu.belirlenen}, {res.statu.ikinciAd}'ndan <b>{res.statu.fark} gün</b> fazla ({res.statu.basisAd.toLowerCase()}). Statünün değişmesi için {res.statu.ikinciAd}'nın <b>{Number(res.statu.fark) + 1} gün</b> daha fazla olması gerekirdi.
+                </div>
               )}
             </div>
           )}

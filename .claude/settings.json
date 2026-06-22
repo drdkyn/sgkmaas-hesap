@@ -45,7 +45,8 @@
       "Bash(node -e \"const c=require\\('./data/params-catalog.json'\\); const arr=Array.isArray\\(c\\)?c:\\(c.items||c.params||Object.values\\(c\\)\\); console.log\\('tip:',Array.isArray\\(c\\)?'array':'obj','adet:',Array.isArray\\(c\\)?c.length:JSON.stringify\\(Object.keys\\(c\\)\\)\\); console.log\\(JSON.stringify\\(c\\).slice\\(0,600\\)\\);\")",
       "Bash(node -e ' *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(rm -f _poc/_trim_sheets.mjs _poc/_sheet_refs.mjs)"
     ]
   }
 }
