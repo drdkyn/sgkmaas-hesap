@@ -41,6 +41,7 @@ export default function Home() {
   const [rows, setRows] = useState<Row[] | null>(null); // çözümlenmiş & düzenlenebilir dönemler
   const [dogumTarihi, setDogum] = useState('');
   const [cinsiyet, setCinsiyet] = useState('');
+  const [iseGirisTarihi, setIseGiris] = useState('');
   const [tahsisTarihi, setTahsis] = useState('');
   const [loading, setLoading] = useState(false);
   const [parseBusy, setParseBusy] = useState(false);
@@ -69,11 +70,14 @@ export default function Home() {
   }
 
   async function hesapla() {
+    // İşe giriş ve cinsiyet ZORUNLU: statü tespiti (4a/4b/4c) ve emeklilik şartları bunlara bağlı.
+    if (!cinsiyet) { setErr('Cinsiyet zorunludur (emeklilik şartları cinsiyete göre değişir).'); return; }
+    if (!/^\d{2}\.\d{2}\.\d{4}$/.test(iseGirisTarihi)) { setErr('İşe Giriş Tarihi zorunludur (gg.aa.yyyy) — statü tespiti (SSK/Emekli Sandığı) ilk giriş tarihine göre yapılır.'); return; }
     setLoading(true); setErr(''); setRes(null);
     try {
       // Düzenlenmiş satırlar varsa onları gönder (Giriş/Çıkış tarihleri serie çevrilir);
       // yoksa ham metni gönder (sunucu parse eder).
-      let body: any = { dogumTarihi, cinsiyet, tahsisTarihi };
+      let body: any = { dogumTarihi, cinsiyet, iseGirisTarihi, tahsisTarihi };
       if (rows && rows.length) {
         body.hizmetRows = rows.map(({ _giris, _cikis, ...rw }) => ({
           ...rw,
@@ -170,16 +174,18 @@ export default function Home() {
       )}
 
       <div className="card">
-        <h2>2) Kişi Bilgileri (opsiyonel)</h2>
+        <h2>2) Kişi Bilgileri</h2>
         <div className="grid">
-          <div><label className="lbl">Doğum Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={dogumTarihi} onChange={e => setDogum(maskDate(e.target.value))} /></div>
-          <div><label className="lbl">Cinsiyet</label>
-            <select className="inp" value={cinsiyet} onChange={e => setCinsiyet(e.target.value)}>
-              <option value="">—</option><option value="E">Erkek</option><option value="K">Kadın</option>
+          <div><label className="lbl">İşe Giriş Tarihi <span style={{ color: '#dc2626' }}>*</span></label><input className="inp" style={!/^\d{2}\.\d{2}\.\d{4}$/.test(iseGirisTarihi) ? { borderColor: '#fca5a5' } : undefined} placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={iseGirisTarihi} onChange={e => setIseGiris(maskDate(e.target.value))} /></div>
+          <div><label className="lbl">Cinsiyet <span style={{ color: '#dc2626' }}>*</span></label>
+            <select className="inp" style={!cinsiyet ? { borderColor: '#fca5a5' } : undefined} value={cinsiyet} onChange={e => setCinsiyet(e.target.value)}>
+              <option value="">— seçin —</option><option value="E">Erkek</option><option value="K">Kadın</option>
             </select>
           </div>
+          <div><label className="lbl">Doğum Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={dogumTarihi} onChange={e => setDogum(maskDate(e.target.value))} /></div>
           <div><label className="lbl">Tahsis / Hesap Tarihi</label><input className="inp" placeholder="gg.aa.yyyy" inputMode="numeric" maxLength={10} value={tahsisTarihi} onChange={e => setTahsis(maskDate(e.target.value))} /></div>
         </div>
+        <div className="sub" style={{ marginTop: 8 }}><span style={{ color: '#dc2626' }}>*</span> zorunlu — statü tespiti (SSK / Bağ-Kur / Emekli Sandığı) ve emeklilik şartları bu alanlara göre belirlenir.</div>
       </div>
 
       <button className="hesapla-btn" onClick={hesapla} disabled={loading}>
