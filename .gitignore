@@ -19,3 +19,7 @@ _new2026.xlsx
 # OS
 .DS_Store
 Thumbs.db
+
+# dev/geçici
+dev.log
+*.pdf

@@ -194,15 +194,24 @@ export default function Home() {
             <h2>Bağlanacak Aylık (Maaş)</h2>
             <div className="maas">{tl(res.maasToplam)}</div>
             <div className="sub">Aylık: {tl(res.maasAylik)} · Ek Ödeme: {tl(res.maasEkOdeme)} {res.satirSayisi ? `· ${res.satirSayisi} hizmet kaydı` : ''}</div>
+            {Number(res.tabanAylik) > 0 && (
+              <div className="sub" style={{ marginTop: 8 }}>
+                ℹ️ En düşük emekli aylığı (taban): <b>{tl(res.tabanAylik)}</b>
+                {Number(res.maasToplam) < Number(res.tabanAylik) && ' — hesaplanan aylık tabanın altında; ödenen aylık taban tutarına yükseltilir.'}
+              </div>
+            )}
           </div>
           <div className="card">
             <h2>Hizmet Durumu</h2>
             <div className="grid">
-              <div className="kv"><div className="k">Prim Ödeme Gün Sayısı</div><div className="v">{res.primGunSayisi}</div></div>
-              <div className="kv"><div className="k">Sigortalılık Süresi (yıl)</div><div className="v">{res.sigortalilikSuresi}</div></div>
+              {Number(res.toplamGun) > 0 && (
+                <div className="kv"><div className="k">Toplam PÖGS (SGK)</div><div className="v">{res.toplamGun}</div></div>
+              )}
               {Number(res.cakisanHizmet) < 0 && (
                 <div className="kv"><div className="k">Çakışan Hizmet (düşülen gün)</div><div className="v">{Math.abs(Number(res.cakisanHizmet))}</div></div>
               )}
+              <div className="kv"><div className="k">Prim Ödeme Gün Sayısı (net)</div><div className="v">{res.primGunSayisi}</div></div>
+              <div className="kv"><div className="k">Sigortalılık Süresi (yıl)</div><div className="v">{res.sigortalilikSuresi}</div></div>
             </div>
             {Number(res.cakisanHizmet) < 0 && (
               <>

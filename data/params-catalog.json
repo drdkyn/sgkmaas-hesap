@@ -1,6 +1,16 @@
 {
   "gruplar": [
     {
+      "baslik": "Taban Aylık (En Düşük Emekli Aylığı)",
+      "aciklama": "Devletçe belirlenen en düşük emekli aylığı. Hesaplamayı DEĞİŞTİRMEZ; sonuç sayfasında bilgi olarak gösterilir (hesaplanan aylık + ek ödeme normal aylıktır).",
+      "params": [
+        {
+          "ref": "Emekli Maaşı!CZ1",
+          "label": "Taban Aylık (₺)"
+        }
+      ]
+    },
+    {
       "baslik": "TÜFE Oranları (Yıllık, %) — Güncelleme Katsayısı",
       "aciklama": "Her yıl açıklanan yıllık TÜFE (bir önceki yıl). Aylık bağlama güncellemesinde kullanılır. Yüzde olarak girin (ör. 64,77).",
       "params": [
