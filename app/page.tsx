@@ -135,6 +135,25 @@ export default function Home() {
               </>
             )}
           </div>
+          {res.statu && res.statu.belirlenen && (
+            <div className="card">
+              <h2>Statü Kontrolü</h2>
+              <div className="grid">
+                <div className="kv"><div className="k">Emekli olunacak statü</div><div className="v">{res.statu.belirlenen}</div></div>
+              </div>
+              <div className="sub" style={{ marginTop: 8 }}>{res.statu.kural}</div>
+              {res.statu.toplamDagilim && Object.keys(res.statu.toplamDagilim).length > 1 && (
+                <table style={{ marginTop: 10 }}>
+                  <thead><tr><th>Statü</th><th>Toplam Gün</th></tr></thead>
+                  <tbody>
+                    {Object.entries(res.statu.toplamDagilim).sort((a, b) => (b[1] as number) - (a[1] as number)).map(([st, gun], i) => (
+                      <tr key={i}><td>{st}</td><td>{gun as number}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
           <div className="card">
             <h2>Emeklilik Şartları</h2>
             <table>
