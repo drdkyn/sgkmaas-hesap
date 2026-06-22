@@ -133,18 +133,17 @@ export default function Home() {
               onChange={e => e.target.files?.[0] && pdfYukle(e.target.files[0])} />
           </label>
           <button className="btn-file" onClick={cozumle} disabled={parseBusy || !hizmetText.trim()}>
-            {parseBusy ? 'Çözümleniyor…' : '🔍 Çözümle ve Çıkış Tarihlerini Düzenle'}
+            {parseBusy ? 'Çözümleniyor…' : '🔍 Dökümü Çözümle'}
           </button>
         </div>
       </div>
 
       {rows && rows.length > 0 && (
         <div className="card">
-          <h2>1b) Dönemler — Giriş / Çıkış Tarihleri</h2>
+          <h2>1b) Çözümlenen Dönemler (kontrol)</h2>
           <p className="sub" style={{ marginBottom: 10 }}>
-            Aşağıdaki <b>{rows.length}</b> dönem çözümlendi. <b>Çıkış Tarihi</b> aynı aya denk gelen hizmetlerde
-            çakışma hesabını (ve dolayısıyla prim gününü/maaşı) etkiler. Dökümde çıkış tarihi yoksa burada girin/düzeltin
-            (boş bırakılırsa ilgili ayın sonu varsayılır).
+            Aşağıdaki <b>{rows.length}</b> dönem çözümlendi. <b>Günler dökümde gösterildiği gibi</b> alınır (çıkış tarihinden gün hesaplanmaz);
+            aynı ay içinde farklı işyerinden gelen 30 gün aşımı çakışan hizmet olarak düşülür. Cinsiyet, doğum ve işe giriş tarihi otomatik dolduruldu (düzeltilebilir).
           </p>
           <div style={{ overflowX: 'auto', maxHeight: 420, overflowY: 'auto' }}>
             <table style={{ fontSize: 12 }}>
