@@ -48,10 +48,11 @@ export default function Home() {
   const [err, setErr] = useState('');
   const [res, setRes] = useState<any>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [uyari, setUyari] = useState('');
 
   // Dökümü çözümle → düzenlenebilir tabloya yükle (Giriş/Çıkış Tarihi gg.aa.yyyy olarak)
   async function cozumle() {
-    setParseBusy(true); setErr(''); setRes(null);
+    setParseBusy(true); setErr(''); setRes(null); setUyari('');
     try {
       const r = await fetch('/api/parse', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -66,6 +67,7 @@ export default function Home() {
       if (data.kisi?.dogumTarihi) setDogum(data.kisi.dogumTarihi);
       // İşe giriş'i ilk kaydın giriş tarihinden öner (zorunlu; kullanıcı düzeltebilir).
       if (!iseGirisTarihi) { const ilk = ed.find(r => r._giris); if (ilk?._giris) setIseGiris(ilk._giris); }
+      if (data.uyari) setUyari(data.uyari);
     } catch (e: any) { setErr(String(e?.message || e)); }
     finally { setParseBusy(false); }
   }
@@ -122,7 +124,7 @@ export default function Home() {
           SGK/e-Devlet hizmet dökümü tablosunu seçin (<b>Ctrl+A</b>), kopyalayın (<b>Ctrl+C</b>) ve aşağıya yapıştırın (<b>Ctrl+V</b>). Veya PDF yükleyin.
         </p>
         <textarea
-          value={hizmetText} onChange={e => { setHizmetText(e.target.value); setRows(null); }}
+          value={hizmetText} onChange={e => { setHizmetText(e.target.value); setRows(null); setUyari(''); }}
           placeholder="Hizmet dökümü tablosunu buraya yapıştırın…"
           rows={8} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12, padding: 10, border: '1px solid #cbd5e1', borderRadius: 8 }}
         />
@@ -193,6 +195,7 @@ export default function Home() {
         {loading ? 'Hesaplanıyor… (20-30 sn sürebilir)' : 'HESAPLA'}
       </button>
 
+      {uyari && <div className="note" style={{ background: '#fffbeb', borderColor: '#fcd34d', color: '#92400e' }}>{uyari}</div>}
       {err && <div className="note" style={{ background: '#fee2e2', borderColor: '#fca5a5', color: '#b91c1c' }}>{err}</div>}
 
       {res && (
