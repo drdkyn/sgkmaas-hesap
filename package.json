@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "extract-native": "node scripts/extract-native-data.mjs",
+    "trim-workbook": "node scripts/trim-workbook-faz1.mjs",
+    "analyze-sheets": "node scripts/analyze-sheet-trim.mjs",
+    "regression": "node scripts/regression.mjs"
   },
   "dependencies": {
     "fast-formula-parser": "^1.0.19",

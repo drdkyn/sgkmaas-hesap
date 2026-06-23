@@ -13,6 +13,8 @@
     {
       "baslik": "TÜFE Oranları (Yıllık %)",
       "aciklama": "Her yıl açıklanan yıllık TÜFE (bir önceki yıl). Aylık güncellemede kullanılır.",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "yearly", "col": "F", "etiket": "TÜFE (%)" },
       "params": [
         {
           "ref": "Veri Girişi!F4",
@@ -67,6 +69,8 @@
     {
       "baslik": "Gelişme Hızı (GH) (Yıllık %)",
       "aciklama": "Yıllık gelişme hızı; TÜFE ile birlikte güncellemede kullanılır.",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "yearly", "col": "G", "etiket": "GH (%)" },
       "params": [
         {
           "ref": "Veri Girişi!G4",
@@ -121,6 +125,8 @@
     {
       "baslik": "Maaş Artış (Zam) Oranları (%)",
       "aciklama": "Aylık başlangıç dönemine ait maaş zam oranı; hesaplanan aylığı ödeme tarihindeki güncel değere taşır (ör. 2026/01 = %12,19).",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "custom", "col": "N", "etiket": "Zam Oranı (%)", "minRow": 4, "maxRow": 25 },
       "params": [
         {
           "ref": "Veri Girişi!N4",
@@ -187,6 +193,8 @@
     {
       "baslik": "Prime Esas Kazanç Tavanı — Özel (₺)",
       "aciklama": "Özel sektör yıllık PEK üst sınırı (kazanç tavanı).",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "yearly", "col": "U", "etiket": "Tavan Özel (₺)" },
       "params": [
         {
           "ref": "Veri Girişi!U4",
@@ -241,6 +249,8 @@
     {
       "baslik": "Prime Esas Kazanç Tavanı — Kamu (₺)",
       "aciklama": "Kamu yıllık PEK üst sınırı.",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "yearly", "col": "V", "etiket": "Tavan Kamu (₺)" },
       "params": [
         {
           "ref": "Veri Girişi!V4",
@@ -295,6 +305,8 @@
     {
       "baslik": "En Düşük Yaşlılık Aylığı (₺)",
       "aciklama": "Yıllara göre en düşük yaşlılık aylığı (alt sınır aylığı kontrolü).",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "yearly", "col": "Y", "etiket": "En Düşük Aylık (₺)" },
       "params": [
         {
           "ref": "Veri Girişi!Y4",
@@ -337,6 +349,8 @@
     {
       "baslik": "Günlük Kazanç Alt Sınırı (₺) — Borçlanma",
       "aciklama": "Asgari ücrete bağlı günlük kazanç alt sınırı (borçlanma hesabı).",
+      "eklenebilir": true,
+      "rowSchema": { "tip": "custom", "col": "C", "etiket": "Günlük Alt Sınır (₺)", "minRow": 4, "maxRow": 25 },
       "params": [
         {
           "ref": "Veri Girişi!C4",

@@ -246,7 +246,7 @@ export default function Home() {
             <div className="card">
               <h2>Statü Kontrolü</h2>
               <div className="grid">
-                <div className="kv"><div className="k">Emekli olunacak statü</div><div className="v">{res.statu.belirlenen}</div></div>
+                <div className="kv"><div className="k">Mevcut statü</div><div className="v">{res.statu.belirlenen}</div></div>
               </div>
               <div className="sub" style={{ marginTop: 8 }}>{res.statu.kural}</div>
               {Array.isArray(res.statu.statuler) && (
