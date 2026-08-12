@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Keep the formula engine + its CJS dep out of the bundler (used only server-side).
-  // pdf-parse/pdfjs must stay external too — bundling breaks pdfjs internals at runtime
-  // ("Object.defineProperty called on non-object").
-  serverExternalPackages: ['fast-formula-parser', 'pdf-parse'],
+  // Keep the formula engine out of the bundler (used only server-side, via calc-worker.mjs).
+  serverExternalPackages: ['fast-formula-parser'],
   agentRules: false,
   outputFileTracingIncludes: {
     // calc-worker.mjs bir alt process olarak spawn ediliyor (bkz. lib/calc-worker.mjs yorumu);
@@ -55,6 +53,21 @@ const nextConfig = {
       './node_modules/jstat/**',
     ],
     '/api/admin': ['./data/workbook.json', './data/params-catalog.json', './data/params.json', './data/params-rows.json'],
+    // pdf-worker.mjs de aynı sebeple ayrı bir process olarak spawn ediliyor (bkz.
+    // lib/pdf-worker.mjs) — pdf-parse'ı Next'in serverExternalPackages/bundler izlemesinden
+    // tamamen çıkarır (bu proje için o yol Vercel'de güvenilir çalışmıyordu).
+    '/api/pdf': [
+      './lib/**',
+      './node_modules/pdf-parse/**',
+      './node_modules/pdfjs-dist/**',
+      // pdfjs-dist'in Node/legacy derlemesi DOMMatrix/ImageData/Path2D polyfill'leri için
+      // @napi-rs/canvas'a ZORUNLU muhtaç (sadece resim/screenshot metodları için değil,
+      // getText() için de) — eksik olursa "DOMMatrix is not defined" ile çöker (doğrulandı).
+      // Platform'a özel native paket (@napi-rs/canvas-linux-x64-gnu vb.) build makinesinde
+      // hangisi kuruluysa joker karakterle yakalanıyor.
+      './node_modules/@napi-rs/canvas/**',
+      './node_modules/@napi-rs/canvas-*/**',
+    ],
   },
 };
 export default nextConfig;
