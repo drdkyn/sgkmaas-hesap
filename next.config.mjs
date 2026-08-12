@@ -4,6 +4,7 @@ const nextConfig = {
   // pdf-parse/pdfjs must stay external too — bundling breaks pdfjs internals at runtime
   // ("Object.defineProperty called on non-object").
   serverExternalPackages: ['fast-formula-parser', 'pdf-parse'],
+  agentRules: false,
   outputFileTracingIncludes: {
     '/api/hesapla': ['./data/workbook.json', './data/params.json', './data/params-rows.json'],
     '/api/admin': ['./data/params-catalog.json', './data/params.json', './data/params-rows.json'],
