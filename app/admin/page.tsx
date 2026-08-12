@@ -13,13 +13,20 @@ export default function Admin() {
   const [gruplar, setGruplar] = useState<Grup[]>([]);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
+    setLoadError('');
     const r = await fetch('/api/admin');
     const d = await r.json();
-    setGruplar(d.gruplar || []);
+    if (!r.ok) {
+      setLoadError(d.error || `Yükleme başarısız (HTTP ${r.status}).`);
+      setGruplar([]);
+    } else {
+      setGruplar(d.gruplar || []);
+    }
     setEdits({});
     setLoading(false);
   }
@@ -97,6 +104,8 @@ export default function Admin() {
         Periyodik güncellenen değerleri buradan değiştirin. Yıllık parametrelerde &quot;+ Yıl ekle&quot; ile
         yeni satır ekleyebilirsiniz — motor formülleri Veri Girişi hücresini otomatik okur.
       </div>
+
+      {loadError && <div className="note">{loadError}</div>}
 
       {gruplar.map((g, gi) => (
         <div className="card" key={gi}>

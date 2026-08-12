@@ -7,7 +7,7 @@ const nextConfig = {
   agentRules: false,
   outputFileTracingIncludes: {
     '/api/hesapla': ['./data/workbook.json', './data/params.json', './data/params-rows.json'],
-    '/api/admin': ['./data/params-catalog.json', './data/params.json', './data/params-rows.json'],
+    '/api/admin': ['./data/workbook.json', './data/params-catalog.json', './data/params.json', './data/params-rows.json'],
   },
 };
 export default nextConfig;
