@@ -43,13 +43,6 @@ export async function GET() {
     await Promise.all([syncParams(), syncParamsRows()]);
     const cat = catalog();
     cat.gruplar = cat.gruplar.map(enrichGroup);
-    // GEÇİCİ TEŞHİS
-    (cat as any)._debug = {
-      envKeyCount: Object.keys(process.env).length,
-      tokenPresent: !!process.env.BLOB_READ_WRITE_TOKEN,
-      tokenLen: process.env.BLOB_READ_WRITE_TOKEN ? process.env.BLOB_READ_WRITE_TOKEN.length : 0,
-      loadParamsResult: loadParams(),
-    };
     return NextResponse.json(cat);
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
