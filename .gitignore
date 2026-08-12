@@ -20,6 +20,11 @@ _new2026.xlsx
 .DS_Store
 Thumbs.db
 
+# env / secrets
+.env
+.env.local
+.env*.local
+
 # dev/geçici
 dev.log
 *.pdf
