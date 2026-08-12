@@ -1,0 +1,67 @@
+{
+  "analyzedAt": "2026-06-23T16:07:08.644Z",
+  "removable": [
+    {
+      "sheet": "Statü Tespiti",
+      "cells": 35248,
+      "ok": true
+    },
+    {
+      "sheet": "Borçlan.(4b)",
+      "cells": 26509,
+      "ok": true
+    },
+    {
+      "sheet": "Borçlan.(GM20) ",
+      "cells": 24856,
+      "ok": true
+    },
+    {
+      "sheet": "4c Arayüz",
+      "cells": 10640,
+      "ok": true
+    },
+    {
+      "sheet": "Borçln.(Dolar)",
+      "cells": 9382,
+      "ok": true
+    },
+    {
+      "sheet": "Diğer.San.",
+      "cells": 1937,
+      "ok": true
+    },
+    {
+      "sheet": "Mükteza (Y)",
+      "cells": 1536,
+      "ok": true
+    },
+    {
+      "sheet": "Em.San.",
+      "cells": 710,
+      "ok": true
+    },
+    {
+      "sheet": "İşten Ayrıl. Bild.",
+      "cells": 582,
+      "ok": true
+    }
+  ],
+  "required": [
+    "Gösterge Tabl.",
+    "Hizmet",
+    "Borçln. (TL)",
+    "Emek. Hes.",
+    "Emekli Maaşı",
+    "Emektar 4a (Y)",
+    "Giriş",
+    "Bilgi Formu (Y)",
+    "Veri Girişi",
+    "Emeklilik Şartları"
+  ],
+  "hizDokumu": {
+    "sheet": "Hiz. Dökümü",
+    "cells": 314699,
+    "note": "Ayri analiz — formül aginin cogu"
+  }
+}

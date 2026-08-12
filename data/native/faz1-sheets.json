@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-06-23T16:11:47.563Z",
+  "kept": [
+    "Bilgi Formu (Y)",
+    "Borçln. (TL)",
+    "Emek. Hes.",
+    "Emekli Maaşı",
+    "Emeklilik Şartları",
+    "Emektar 4a (Y)",
+    "Giriş",
+    "Gösterge Tabl.",
+    "Hiz. Dökümü",
+    "Hizmet",
+    "Veri Girişi"
+  ],
+  "removed": [
+    "4c Arayüz",
+    "Borçlan.(4b)",
+    "Borçlan.(GM20) ",
+    "Borçln.(Dolar)",
+    "Diğer.San.",
+    "Em.San.",
+    "Mükteza (Y)",
+    "Statü Tespiti",
+    "İşten Ayrıl. Bild."
+  ],
+  "hizSheetMaxRow": 890,
+  "before": {
+    "cells": 482070,
+    "formulas": 439584,
+    "sheets": 20
+  },
+  "after": {
+    "cells": 370670,
+    "formulas": 333579,
+    "sheets": 11
+  }
+}
