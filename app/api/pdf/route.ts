@@ -10,7 +10,10 @@ export const dynamic = 'force-dynamic';
 function runWorker(base64: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const worker = path.join(process.cwd(), 'lib', 'pdf-worker.mjs');
-    const child = spawn(process.execPath, ['--max-old-space-size=2048', worker], { windowsHide: true });
+    const child = spawn(process.execPath, ['--max-old-space-size=2048', worker], {
+      windowsHide: true,
+      env: { ...process.env },
+    });
     let out = '', err = '';
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { err += d; });

@@ -11,7 +11,13 @@ export const dynamic = 'force-dynamic';
 function runWorker(payload: any): Promise<any> {
   return new Promise((resolve, reject) => {
     const worker = path.join(process.cwd(), 'lib', 'calc-worker.mjs');
-    const child = spawn(process.execPath, ['--max-old-space-size=4096', worker], { windowsHide: true });
+    // env'i açıkça geçiriyoruz: Vercel'de process.env'in varsayılan miras alınması
+    // BLOB_READ_WRITE_TOKEN gibi platform-enjekte edilen değişkenleri çocuk process'e
+    // taşımıyor (doğrulandı) — spread ile düz bir kopya vermek bunu garantiliyor.
+    const child = spawn(process.execPath, ['--max-old-space-size=4096', worker], {
+      windowsHide: true,
+      env: { ...process.env },
+    });
     let out = '', err = '';
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { err += d; });
