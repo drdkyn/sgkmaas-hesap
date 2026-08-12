@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
-import { loadParams, saveParams, readCell } from '../../../lib/sgk.mjs';
+import { loadParams, saveParams, syncParams, readCell } from '../../../lib/sgk.mjs';
 // @ts-ignore
 import {
   mergeGroupWithYearlyExtras,
   mergeGroupWithCustomExtras,
   loadParamsRows,
+  syncParamsRows,
   addYearlyRow,
   addCustomRow,
   cellRef,
@@ -37,6 +38,7 @@ function enrichGroup(g: any) {
 
 export async function GET() {
   try {
+    await Promise.all([syncParams(), syncParamsRows()]);
     const cat = catalog();
     cat.gruplar = cat.gruplar.map(enrichGroup);
     return NextResponse.json(cat);
@@ -47,6 +49,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    await Promise.all([syncParams(), syncParamsRows()]);
     const body = await req.json();
     const cur = loadParams();
 
@@ -66,7 +69,7 @@ export async function POST(req: Request) {
     if (Array.isArray(body.addYearly)) {
       for (const item of body.addYearly) {
         const { col, yil, deger } = item as { col: string; yil: number; deger: number };
-        const refs = addYearlyRow(col, yil, deger);
+        const refs = await addYearlyRow(col, yil, deger);
         if (refs) Object.assign(cur, refs);
       }
     }
@@ -79,12 +82,12 @@ export async function POST(req: Request) {
         };
         const ref = cellRef('Veri Girişi', col, row);
         const refs = { [ref]: deger };
-        addCustomRow(grupId, label, refs);
+        await addCustomRow(grupId, label, refs);
         cur[ref] = deger;
       }
     }
 
-    saveParams(cur);
+    await saveParams(cur);
     return NextResponse.json({ ok: true, count: Object.keys(cur).length });
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
