@@ -21,7 +21,7 @@ npm run extract-native
 npm run regression
 ```
 
-Hizmet dökümü **881 kayda** kadar desteklenir.
+Hizmet dökümü **881 kayda** kadar desteklenir..
 
 ## Çalıştırma
 ```bash
