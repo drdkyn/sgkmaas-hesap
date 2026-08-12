@@ -15,6 +15,7 @@ export default function Admin() {
   const [msg, setMsg] = useState('');
   const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   async function load() {
     setLoading(true);
@@ -26,6 +27,7 @@ export default function Admin() {
       setGruplar([]);
     } else {
       setGruplar(d.gruplar || []);
+      setDebugInfo(d._debug || null);
     }
     setEdits({});
     setLoading(false);
@@ -124,6 +126,12 @@ export default function Admin() {
       </div>
 
       {loadError && <div className="note">{loadError}</div>}
+
+      {debugInfo && (
+        <div className="note" style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+          GEÇİCİ TEŞHİS: {JSON.stringify(debugInfo, null, 2)}
+        </div>
+      )}
 
       {gruplar.map((g, gi) => (
         <div className="card" key={gi}>
