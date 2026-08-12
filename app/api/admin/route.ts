@@ -43,7 +43,7 @@ export async function GET() {
     await Promise.all([syncParams(), syncParamsRows()]);
     const cat = catalog();
     cat.gruplar = cat.gruplar.map(enrichGroup);
-    return NextResponse.json(cat);
+    return NextResponse.json(cat, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
   }
