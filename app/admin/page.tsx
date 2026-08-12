@@ -9,6 +9,16 @@ type Grup = {
   params: { ref: string; label: string; varsayilan: unknown; override: string; dinamik?: boolean; yil?: number }[];
 };
 
+/** Kaydet yanıtındaki blobPersisted bilgisini kullanıcıya görünür bir uyarıya çevirir. */
+function blobSuffix(d: any) {
+  if (d?.blobPersisted === false) {
+    return d.blobReason === 'no-token'
+      ? ' ⚠️ Kalıcı depolama (Blob) bağlı değil — bu değişiklik sunucu yeniden başladığında kaybolabilir.'
+      : ` ⚠️ Kalıcı depolamaya yazılamadı (${d.blobReason || 'bilinmeyen hata'}).`;
+  }
+  return '';
+}
+
 export default function Admin() {
   const [gruplar, setGruplar] = useState<Grup[]>([]);
   const [edits, setEdits] = useState<Record<string, string>>({});
@@ -40,7 +50,7 @@ export default function Admin() {
       body: JSON.stringify({ edits }),
     });
     const d = await r.json();
-    setMsg(r.ok ? `Kaydedildi (${d.count} özel değer aktif).` : 'Hata: ' + d.error);
+    setMsg(r.ok ? `Kaydedildi (${d.count} özel değer aktif).${blobSuffix(d)}` : 'Hata: ' + d.error);
     load();
   }
 
@@ -62,7 +72,7 @@ export default function Admin() {
       body: JSON.stringify({ addYearly: [{ col: rs.col, yil, deger }] }),
     });
     const d = await r.json();
-    setMsg(r.ok ? `${yil} eklendi ve kaydedildi.` : 'Hata: ' + d.error);
+    setMsg(r.ok ? `${yil} eklendi ve kaydedildi.${blobSuffix(d)}` : 'Hata: ' + d.error);
     load();
   }
 
@@ -93,7 +103,7 @@ export default function Admin() {
       }),
     });
     const d = await r.json();
-    setMsg(r.ok ? 'Satır eklendi.' : 'Hata: ' + d.error);
+    setMsg(r.ok ? `Satır eklendi.${blobSuffix(d)}` : 'Hata: ' + d.error);
     load();
   }
 
@@ -109,7 +119,7 @@ export default function Admin() {
       body: JSON.stringify(body),
     });
     const d = await r.json();
-    setMsg(r.ok ? 'Satır silindi.' : 'Hata: ' + d.error);
+    setMsg(r.ok ? `Satır silindi.${blobSuffix(d)}` : 'Hata: ' + d.error);
     load();
   }
 

@@ -107,8 +107,8 @@ export async function POST(req: Request) {
       }
     }
 
-    await saveParams(cur);
-    return NextResponse.json({ ok: true, count: Object.keys(cur).length });
+    const blob = await saveParams(cur);
+    return NextResponse.json({ ok: true, count: Object.keys(cur).length, blobPersisted: blob.ok, blobReason: blob.reason });
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
   }
