@@ -11,6 +11,8 @@ import {
   syncParamsRows,
   addYearlyRow,
   addCustomRow,
+  removeYearlyRow,
+  removeCustomRow,
   cellRef,
   nextFreeRow,
   yearToRow,
@@ -58,7 +60,7 @@ export async function POST(req: Request) {
         if (val === '' || val === null || val === undefined) delete cur[ref];
         else cur[ref as string] = val;
       }
-    } else if (!body.addYearly && !body.addCustom) {
+    } else if (!body.addYearly && !body.addCustom && !body.removeYearly && !body.removeCustom) {
       for (const [ref, val] of Object.entries(body)) {
         if (val === '' || val === null || val === undefined) delete cur[ref];
         else cur[ref as string] = val;
@@ -84,6 +86,24 @@ export async function POST(req: Request) {
         const refs = { [ref]: deger };
         await addCustomRow(grupId, label, refs);
         cur[ref] = deger;
+      }
+    }
+
+    // Yanlış eklenen yıllık satırı kaldır
+    if (Array.isArray(body.removeYearly)) {
+      for (const item of body.removeYearly) {
+        const { col, yil } = item as { col: string; yil: number };
+        const refs = await removeYearlyRow(col, yil);
+        if (refs) for (const ref of Object.keys(refs)) delete cur[ref];
+      }
+    }
+
+    // Yanlış eklenen serbest satırı kaldır
+    if (Array.isArray(body.removeCustom)) {
+      for (const item of body.removeCustom) {
+        const { ref } = item as { ref: string };
+        const refs = await removeCustomRow(ref);
+        if (refs) for (const r of Object.keys(refs)) delete cur[r];
       }
     }
 

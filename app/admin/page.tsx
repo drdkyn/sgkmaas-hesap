@@ -6,7 +6,7 @@ type Grup = {
   aciklama?: string;
   eklenebilir?: boolean;
   rowSchema?: { tip: string; col: string; etiket?: string; minRow?: number; maxRow?: number };
-  params: { ref: string; label: string; varsayilan: unknown; override: string; dinamik?: boolean }[];
+  params: { ref: string; label: string; varsayilan: unknown; override: string; dinamik?: boolean; yil?: number }[];
 };
 
 export default function Admin() {
@@ -77,7 +77,9 @@ export default function Admin() {
     });
     const slot = await pr.json();
     if (!pr.ok) { alert(slot.error || 'Satır eklenemedi'); return; }
-    const label = prompt('Dönem açıklaması (ör. 01.01.2027–30.06.2027):', `Yeni dönem (${rs.col}${slot.row})`);
+    const sonDonem = g.params[g.params.length - 1]?.label;
+    const ipucu = sonDonem ? `Son dönem: "${sonDonem}". Yeni dönem açıklaması:` : 'Dönem açıklaması:';
+    const label = prompt(ipucu, '');
     if (!label) return;
     const degerStr = prompt(`${label} — değer:`);
     if (degerStr === null || degerStr === '') return;
@@ -92,6 +94,22 @@ export default function Admin() {
     });
     const d = await r.json();
     setMsg(r.ok ? 'Satır eklendi.' : 'Hata: ' + d.error);
+    load();
+  }
+
+  async function satirSil(g: Grup, p: Grup['params'][number]) {
+    if (!confirm(`"${p.label}" satırı silinsin mi?`)) return;
+    const rs = g.rowSchema;
+    const body = rs?.tip === 'yearly'
+      ? { removeYearly: [{ col: rs.col, yil: p.yil }] }
+      : { removeCustom: [{ ref: p.ref }] };
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    setMsg(r.ok ? 'Satır silindi.' : 'Hata: ' + d.error);
     load();
   }
 
@@ -112,7 +130,7 @@ export default function Admin() {
           <h2>{g.baslik}</h2>
           {g.aciklama && <div className="sub" style={{ marginTop: -4, marginBottom: 10 }}>{g.aciklama}</div>}
           <table>
-            <thead><tr><th>Parametre</th><th>Varsayılan</th><th>Yeni Değer (özel)</th></tr></thead>
+            <thead><tr><th>Parametre</th><th>Varsayılan</th><th>Yeni Değer (özel)</th><th></th></tr></thead>
             <tbody>
               {g.params.map((p) => (
                 <tr key={p.ref} style={p.dinamik ? { background: '#f0fdf4' } : undefined}>
@@ -126,6 +144,14 @@ export default function Admin() {
                       defaultValue={p.override}
                       placeholder={String(p.varsayilan)}
                       onChange={e => setEdits(s => ({ ...s, [p.ref]: e.target.value }))} />
+                  </td>
+                  <td>
+                    {p.dinamik && (
+                      <button type="button" title="Bu satırı sil" onClick={() => satirSil(g, p)}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 16 }}>
+                        ✕
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
